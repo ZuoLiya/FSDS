@@ -1,0 +1,906 @@
+---
+bibliography: bio.bib
+csl: harvard-cite-them-right.csl
+title: Five Guys v2 Group Project
+execute:
+  echo: false
+  freeze: true
+format:
+  html:
+    theme:
+      - minty
+      - css/web.scss
+    code-copy: true
+    code-link: true
+    toc: true
+    toc-title: On this page
+    toc-depth: 2
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+  pdf:
+    include-in-header:
+      text: |
+        \addtokomafont{disposition}{\rmfamily}
+    mainfont: Spectral
+    sansfont: Roboto
+    monofont: JetBrainsMono-Regular
+    papersize: a4
+    geometry:
+      - top=25mm
+      - left=40mm
+      - right=30mm
+      - bottom=25mm
+      - heightrounded
+    toc: false
+    number-sections: false
+    colorlinks: true
+    highlight-style: github
+jupyter:
+  jupytext:
+    text_representation:
+      extension: .qmd
+      format_name: quarto
+      format_version: '1.0'
+      jupytext_version: 1.15.2
+  kernelspec:
+    display_name: Python 3 (ipykernel)
+    language: python
+    name: python3
+---
+
+## Declaration of Authorship {.unnumbered .unlisted}
+
+We, [Five Guys v2 Group], confirm that the work presented in this assessment is our own. Where information has been derived from other sources, we confirm that this has been indicated in the work. Where a Large Language Model such as ChatGPT has been used we confirm that we have made its contribution to the final submission clear.
+
+Date: 18/12/2023
+
+Student Numbers: 23201520,23061102,23137366,20036118,23191687
+
+## Brief Group Reflection
+
+| What Went Well | What Was Challenging |
+| -------------- | -------------------- |
+| finding dataset| poor performance in the result of linear regresstion 
+| team Collaboration and Communication| lack of understanding of the UK property market and situation of Airbnb in the UK|Depth of Research and Literature Review Interpreting Complex Data
+
+
+   
+
+
+
+## Priorities for Feedback
+
+Are there any areas on which you would appreciate more detailed feedback if we're able to offer it?
+
+```{=html}
+<style type="text/css">
+.duedate {
+  border: dotted 2px red; 
+  background-color: rgb(255, 235, 235);
+  height: 50px;
+  line-height: 50px;
+  margin-left: 40px;
+  margin-right: 40px
+  margin-top: 10px;
+  margin-bottom: 10px;
+  color: rgb(150,100,100);
+  text-align: center;
+}
+</style>
+
+1. Data Acquisition and Management: Insights on how effectively we sourced and managed our dataset would be highly valuable. We're particularly interested in understanding the strengths and weaknesses of our data cleaning and preprocessing methods.
+
+2. Linear Regression Analysis: Given the challenges we faced with the performance of our linear regression model, we would appreciate feedback on our approach to modelling. This includes selecting features, handling model assumptions, and our techniques for validation and interpretation of results.
+
+Thank you and this detailed feedback will significantly enhance our learning and improve the quality of our future projects.
+```
+
+{{< pagebreak >}}
+
+# Response to Questions
+
+```{python}
+import numpy as np
+import pandas as pd
+import geopandas as gpd
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
+import seaborn as sns
+```
+
+```{python}
+# read data into a DataFrame
+url = "http://data.insideairbnb.com/united-kingdom/england/london/2023-09-06/data/listings.csv.gz"
+df = pd.read_csv(url, compression='gzip', low_memory= False)
+```
+
+## 1. Who collected the data?
+
+::: 
+
+As discussed on @insideairbnb, Insideairbnb, an independent project led by artist, activist and technologist Murray Cox has been compiling data on Airbnb's impact on local rental markets through publicly available information found on their website - with Cox seeking transparency into how Airbnb affects housing markets and local communities around the world. Operating independently of Airbnb itself, Inside Airbnb aims to shed light on how their properties are used in different cities and countries, with a particular focus on the impact on housing affordability and regulation.
+:::
+
+## 2. Why did they collect it?
+
+::: 
+
+Inside Airbnb gathers data to provide a transparent, data-driven understanding of Airbnb operations in cities like London. This project seeks to provide essential data and analysis on Airbnb's impact on housing affordability, availability, and short-term rental dynamics to stakeholders, including policymakers, researchers and the general public. Murray Cox created Inside Airbnb as an investigative tool to spark public dialogue on Airbnb's impact on rental markets. Analysed, cleansed, and aggregated data from Airbnb help illuminate the balance between short- and long-term rental markets, including commercial versus individual hosts based on size and distribution analysis using Python code snippets provided as evidence of their presence.)
+
+:::
+
+```{python}
+print(f"Data frame is {df.shape[0]:,} x {df.shape[1]:,}")
+```
+
+```{python}
+ax = df.host_listings_count.plot.hist(bins=50);
+ax.set_xlim([0,500]);
+```
+
+## 3. How was the data collected?  
+
+::: 
+
+Inside Airbnb for London, data collection involves web scraping - an automated process in which scripts extract information from the Airbnb website such as location, price, type of accommodation, host information and reviews - APIs (if available) or public datasets released by Airbnb or research partnerships; together these ensure a wide range of data points are captured to provide an in-depth picture of Airbnb presence and impact in London.
+
+:::
+
+## 4. How does the method of collection impact the completeness and/or accuracy of its representation of the process it seeks to study, and what wider issues does this raise?
+
+::: 
+
+The data collection methods employed by Inside Airbnb, predominantly web scraping and API use, have significant implications for the accuracy and completeness of the data. Web scraping, while efficient, might miss dynamic changes such as real-time booking status or exclude certain listings, leading to outdated information or selection bias. The limitations of API data, dependent on Airbnb’s discretion, can further restrict the scope of accessible information. These issues can potentially result in misrepresenting Airbnb’s full market dynamics, especially if certain listing types or geographic areas are underrepresented. Additionally, changes in Airbnb’s own policies and platform design can impact data availability and reliability, affecting the dataset's completeness. This incomplete or skewed data could lead to incorrect conclusions or misinformed policy decisions, raising broader concerns about representation and the ability to fully understand the market dynamics, including unregistered listings or the influence of other short-term rental platforms. These aspects underscore the need for careful consideration of data collection methods and their wider implications in studies of digital platforms like Airbnb.
+
+:::
+
+## 5. What ethical considerations does the use of this data raise? 
+
+::: 
+
+When analyzing data from Inside Airbnb, particularly in the context of London's housing and short-term rental regulations, various ethical considerations emerge, emphasizing the need for careful and responsible use of this data.
+
+Privacy and Data Use: The data scraping process raises concerns about the privacy of hosts and guests. Inside Airbnb's data includes personal details about property owners, which, if not handled with care, can lead to privacy violations. Ethical data handling mandates not only adherence to privacy laws like the GDPR but also a commitment to ensuring that data analysis does not lead to the unfair targeting of individual hosts or neighborhoods.
+
+Regulatory Compliance: The regulations in London, such as the 90-day rule for short-term rentals, are in place to balance the interests of short-term rental providers with the need to maintain sustainable residential communities. KeyNest (2019) emphasises the importance of understanding and adhering to these regulations to ensure responsible use of residential properties for short-term rentals. Failure to comply can lead to penalties, and misuse of Airbnb data in this context could unfairly implicate hosts or misrepresent the scale of regulatory breaches.
+
+Tax Obligations: The ethical use of Airbnb data also involves considering the tax implications for hosts. In London, different tax rules apply to primary residences and second homes when it comes to short-term rentals. Misinterpretation of this data could lead to incorrect assumptions about tax liabilities or evasion.
+
+Host and Property Rights: Hosts on Airbnb must navigate various legal obligations, including agreements with landlords and adherence to mortgage terms. Analysis of Airbnb data should respect these property rights and the legal frameworks within which hosts operate.
+
+Bias and Misrepresentation: The risk of drawing biased conclusions from incomplete or skewed data is a significant ethical concern. Research based on this data must be conducted and presented in a manner that avoids misrepresenting any demographic group or geographic area.
+
+Impact on Communities and Accountability: Findings from Airbnb data analysis can influence public opinion and policy. Thus, it's crucial that such research is transparent and accountable. Misuse or misinterpretation of data can lead to policy decisions that may adversely affect certain communities or stakeholders in the housing market.
+
+In conclusion, the ethical use of Inside Airbnb data requires a multi-faceted approach that respects individual privacy, adheres to regulatory frameworks, considers the tax and legal implications for hosts, and ensures fairness and accuracy in representation and analysis.
+
+:::
+
+## 6. With reference to the data (*i.e.* using numbers, figures, maps, and descriptive statistics), what does an analysis of Hosts and Listing types suggest about the nature of Airbnb lets in
+
+### Tidying up data
+
+```{python}
+#check what columns are included in the df
+df.info()
+```
+
+```{python}
+# Decide the columns to keep
+columns_to_keep = [
+    'id', 'name', 'host_id', 'host_name', 'neighbourhood', 'latitude', 'longitude',
+    'room_type', 'price', 'minimum_nights',  'calculated_host_listings_count',
+    'calculated_host_listings_count_entire_homes', 'calculated_host_listings_count_private_rooms',
+    'calculated_host_listings_count_shared_rooms', 'neighbourhood_cleansed'
+]
+
+df_cut = df[columns_to_keep]
+# Check the data type for all remained columns
+df_cut.info()
+```
+
+```{python}
+# Check the number of NA values
+missing_values_detailed = df_cut.isnull().sum()
+print(missing_values_detailed)
+```
+
+```{python}
+# Drop the 'neighbourhood' column
+df_processing = df_cut.copy()
+df_processing.drop('neighbourhood', axis=1, inplace=True)
+```
+
+```{python}
+# Replace the NA values in 'host_name'
+df_processing.loc[:, 'host_name'] = df_processing['host_name'].fillna('Unknown')
+```
+
+```{python}
+# Check the NA values again
+df_processing.isnull().sum()
+```
+
+```{python}
+# Check the cell values to further investigate the data type, for example it's confusing why the dtype of 'price' is object
+df_processing.head(1)
+```
+
+```{python}
+# Remove the '$' sign
+df_processing.loc[:, 'price'] = df_processing['price'].replace({'\$': '', ',': ''}, regex=True)
+
+# Convert to float
+df_processing.loc[:, 'price'] = df_processing['price'].astype(float)
+# Check if the changes work
+print(df_processing['price'].head())
+```
+
+```{python}
+# Look inside the data
+df_processing.sort_values(by='price',ascending=False).head(7)
+```
+
+```{python}
+df_processing.sort_values(by='price',ascending=True).head(7)
+```
+
+```{python}
+df_processing.shape
+```
+
+```{python}
+to_drop = []
+to_drop.append(df_processing[df_processing.price < 8].index)
+to_drop.append(df_processing[df_processing.price > 1500].index)
+to_drop
+```
+
+```{python}
+df_processed=df_processing.drop(to_drop[0])
+df_processed=df_processed.drop(to_drop[1])
+df_processed.shape
+```
+
+### Host Analysis
+
+```{python}
+# Calculate the number of listings of each host
+listings_per_host_cn = df_processed['host_id'].value_counts()
+
+# Plot a histgram
+plt.figure(figsize=(10, 6))
+sns.histplot(listings_per_host_cn, bins=50, kde=False)
+plt.yscale('log')
+plt.title('Distribution of the number of hosts properties')
+plt.xlabel('Number of properties')
+plt.ylabel('Number of hosts')
+plt.show()
+
+# Describe the number of listings of each host
+listings_per_host_cn.describe()
+```
+
+```{python}
+# Create a list of column names
+columns = ['calculated_host_listings_count_entire_homes',
+           'calculated_host_listings_count_private_rooms',
+           'calculated_host_listings_count_shared_rooms']
+
+# Initialise a list to store the data in each column
+data_for_plot = []
+
+# Iterate through the columns, filter the data, and append to the list
+for col in columns:
+    data_col = df_processed[df_processed[col] != 0][col]
+    data_for_plot.append(data_col)
+
+# Creating Histograms
+plt.figure(figsize=(10, 6))
+plt.hist(data_for_plot, bins=30, edgecolor='black', alpha=0.7, label=columns)
+plt.title('Histogram of Listings Count per Host')
+plt.xlabel('Number of Listings')
+plt.ylabel('Frequency of Hosts')
+plt.legend()
+plt.grid(True)
+plt.show()
+```
+
+:::
+
+According to the calculation result, it is worth noting that both the quartile number and the minimum number of properties per host are 1, which means that most London listings on Airbnb are managed by private hosts and tenants are capable of contacting them directly. However, the largest number of properties London hosts own is up to 301, for which they may be suspected of being an intermediary agent.
+
+:::
+
+### Listing Analysis
+
+```{python}
+gdf = gpd.GeoDataFrame(df_processed, 
+      geometry=gpd.points_from_xy(df_processed.longitude, df_processed.latitude, crs='epsg:4326'))
+gdf = gdf.to_crs('EPSG:27700')
+```
+
+```{python}
+import os
+from requests import get
+from urllib.parse import urlparse
+
+def cache_data(src:str, dest:str) -> str:
+    """
+    
+    NAME
+    cache_data
+    
+    DESCRIPTION
+    This is a function to test whether a certain file exists in users' drive.
+    If not, the file will be downloaded from the url provided.
+    If does, users will be told that the file has been there.
+    
+    """    
+    url = urlparse(src) # We assume that this is some kind of valid URL
+    fn  = os.path.split(url.path)[1] # Extract the filename
+    dfn = os.path.join(dest,fn) # Destination filename
+    
+    if not os.path.isfile(dfn):
+        
+        print(f"{dfn} not found, downloading!")
+
+        path = os.path.split(dest)
+        
+        if len(path) >= 1 and path[0] != '':
+            os.makedirs(os.path.join(*path), exist_ok=True)
+            
+        with open(dfn, "wb") as file:
+            response = get(src)
+            file.write(response.content)
+            
+        print("\tDone downloading...")
+
+    else:
+        print(f"Found {dfn} locally!")
+
+    return dfn
+```
+
+```{python}
+ddir  = os.path.join('data','geo') # destination directory
+spath = 'https://github.com/jreades/i2p/blob/master/data/src/' # source path
+
+LB = gpd.read_file( cache_data(spath+'Boroughs.gpkg?raw=true', ddir) )
+```
+
+```{python}
+# Plotting Airbnb listings
+fig, ax = plt.subplots(figsize=(10, 10))
+gdf.plot(ax=ax, marker='*', color=	"#EDB120", markersize=1.5, alpha=0.5)
+LB.plot(edgecolor='lightgrey', facecolor=[1,1,1,0], linewidth=0.75, ax=ax)
+plt.title('Airbnb Listings in London')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+#plt.grid(True)
+plt.show()
+```
+
+As is shown in the data, there are about 88 thousand listings in London, most of which are located in Inner London. Among the areas in London, Westminster has the most Airbnb properties for 9823, which is once more than the following Tower Hamlets. Sutton has the smallest number of Airbnb properties 381. As for the density of listings, Kensington and Chelsea is the highest area for 4.63 listings per hectare, while Havering is the sparsest distributed listing for less than 0.035 per hectare.
+
+```{python}
+import pysal as p
+import mapclassify as mc
+import palettable.matplotlib as palmpl
+from legendgram import legendgram
+
+fontname = "Liberation Sans Narrow"
+
+q = mc.Quantiles(gdf.price.values, k=5)
+
+gdf['bins'] = q.yb #yb is bin ID for observation
+
+# Set up the figure with its 'basemap'
+f,ax = plt.subplots(figsize=(15,12))
+LB.plot(edgecolor='black', facecolor='white', linewidth=2, zorder=3, ax=ax)
+
+
+ax.axis('off') # Don't plot the axes
+
+gdf.plot(column='bins', categorical=True,
+         cmap='viridis', legend=True, marker='.', markersize=1.5, zorder=4, ax=ax, aspect=1)
+
+# Set the title using a specified font, weight, and size
+ax.set_title('London Airbnb Listings Price Per Night', 
+             fontdict={'fontsize':'20', 'fontweight':'3', 'family':fontname})  #provide a title
+
+for c in ax.collections:
+    # Find the layer with the data
+    if c.get_zorder()==4:
+        handles, _ = c.legend_elements(prop="colors")
+        legend1 = ax.legend(handles, q.get_legend_classes(fmt='{:.2f}'), 
+                            loc="upper right", title="Price per Night", 
+                            prop={'size':'10', 'weight':'1', 'family':fontname})
+        ax.add_artist(legend1)
+
+# And don't forget to add a source!
+a = ax.text(gdf.geometry.x.max(), gdf.geometry.y.min(), 'Source: InsideAirbnb (2023)', 
+             horizontalalignment='right', verticalalignment='bottom', 
+             fontsize=14, fontweight=4, color='#333333', family=fontname)
+
+# And this is a nice feature: show the distribution!
+ax2 = legendgram(f, ax, 
+           gdf.price, q.bins, bins=round(gdf.price.max()/25),
+           pal=palmpl.Viridis_5,
+           legend_size=(0.3, 0.1), 
+           loc='lower left',
+           clip=(0,1000),
+           frameon=True
+    )
+ax2.set_title("Number of Listings", fontdict={'family': fontname})
+# But we have to fix the font manually here
+# for the legendgram too
+for tk in ax2.get_xticklabels():
+    tk.set_fontname(fontname)
+```
+
+The highest price of Airbnb listing is for an apartment nearly 1500 dollars per night, while the cheapest one, less than 8 dollars per night, is a shared room, both of which are in Westminster. And most common price of Airbnb is less than 100 dollars per night.
+
+```{python}
+# Print all column names in the GeoDataFrame
+print(LB.columns)
+```
+
+```{python}
+# extract name and heatares out into a new data frame
+BS_data = {}
+BS_data['neighbourhood_cleansed']=LB.NAME.tolist()
+BS_data['borough_squares']=LB.HECTARES.tolist()
+BS = pd.DataFrame(BS_data)
+BS.head(3)
+```
+
+```{python}
+# Group the dataframe by the 'neighbourhood_cleansed' column
+grouped_df = df_processed.groupby('neighbourhood_cleansed')
+# Get the size of each group, which is also the number of listings per borough
+group_sizes = pd.DataFrame(grouped_df.size())
+
+# return the data in group_sizes back into the old data frame
+df_processed_with_sizes = pd.merge(df_processed, group_sizes, left_on='neighbourhood_cleansed', right_index=True, how='left')
+# rename the new column
+df_processed_with_sizes.rename(columns={0: 'number_of_listings'}, inplace=True)
+
+# check the results
+df_processed_with_sizes.head(7)
+```
+
+```{python}
+# extract 'number_of_listings' and 'neighbourhood_cleansed' and remove the duplicated values
+unique_neighbourhoods = df_processed_with_sizes[['number_of_listings', 'neighbourhood_cleansed']].drop_duplicates()
+# check the result
+unique_neighbourhoods.head(3)
+```
+
+```{python}
+# merge 'unique_neighbourhoods' and 'BS' together by 'neighbourhood_cleansed' column
+neighbourhood_info = pd.merge(unique_neighbourhoods, BS, on='neighbourhood_cleansed', how='inner')
+# create a new column to calculate density
+neighbourhood_info['listings_density']=neighbourhood_info.number_of_listings/neighbourhood_info.borough_squares
+neighbourhood_info
+```
+
+::: 
+
+As is shown in the data, there are about 88 thousand listings in London, most of which are located in Inner London. Among the areas in London, Westminster has the most airbnb properties for 9823, which is once more than the following one, Sutton has the smallest number of airbnb properties for 381. As for the density of listing, Kensington and Chelsea is the highest area for 4.63 per hectare, while Havering is the sparseliest distributed listing for less than 0.035 per hectare.
+
+::: 
+
+```{python}
+fig, axs = plt.subplots(3, 2, figsize=(14, 20))
+
+# Plot to the specified axes
+ax1 = axs[0, 0]
+ax2 = axs[0,1]
+ax3 = axs[1,0]
+ax4 = axs[1,1]
+ax5 = axs [2,0]
+gdf[gdf.price < 55].plot(ax=ax1, figsize=(12, 8), marker='*', markersize=0.25, 
+                                    column='price', cmap='viridis')
+gdf[(gdf.price > 55) & (gdf.price < 90)].plot(figsize=(12,8), marker='*', markersize=0.25, 
+         column='price', cmap='viridis', ax=ax2)
+gdf[(gdf.price > 90) & (gdf.price < 135)].plot(figsize=(12,8), marker='*', markersize=0.25, 
+         column='price', cmap='viridis', ax=ax3)
+gdf[(gdf.price > 135) & (gdf.price < 211)].plot(figsize=(12,8), marker='*', markersize=0.25, 
+         column='price', cmap='viridis', ax=ax4)
+gdf[(gdf.price > 211) & (gdf.price < 1500)].plot(figsize=(12,8), marker='*', markersize=0.25, 
+         column='price', cmap='viridis', ax=ax5)
+LB.plot(edgecolor='black', facecolor=(1,1,1,0), ax=ax1, linewidth=0.5)
+LB.plot(edgecolor='black', facecolor=(1,1,1,0), ax=ax2, linewidth=0.5)
+LB.plot(edgecolor='black', facecolor=(1,1,1,0), ax=ax3, linewidth=0.5)
+LB.plot(edgecolor='black', facecolor=(1,1,1,0), ax=ax4, linewidth=0.5)
+LB.plot(edgecolor='black', facecolor=(1,1,1,0), ax=ax5, linewidth=0.5)
+
+# Set the title for the subplot
+ax1.set_title("Price range: Under 55($)")
+ax2.set_title("Price range: 55 - 90($)")
+ax3.set_title("Price range: 90 - 135($)")
+ax4.set_title("Price range: 135 - 211($)")
+ax5.set_title("Price range: 211 - 1500($)")
+
+# Create colorbar using the plot's returned ScalarMappable object
+sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=gdf['price'].min(), vmax=55))
+sm._A = []  # This empty array is a workaround to a known Matplotlib issue
+fig.colorbar(sm, ax=ax1, orientation='horizontal', label='Price per Night ($)')
+
+sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=55, vmax=90))
+sm._A = []  # This empty array is a workaround to a known Matplotlib issue
+fig.colorbar(sm, ax=ax2, orientation='horizontal', label='Price per Night ($)')
+
+sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=90, vmax=135))
+sm._A = []  # This empty array is a workaround to a known Matplotlib issue
+fig.colorbar(sm, ax=ax3, orientation='horizontal', label='Price per Night ($)')
+
+sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=135, vmax=211))
+sm._A = []  # This empty array is a workaround to a known Matplotlib issue
+fig.colorbar(sm, ax=ax4, orientation='horizontal', label='Price per Night ($)')
+
+sm = plt.cm.ScalarMappable(cmap='viridis', norm=plt.Normalize(vmin=211, vmax=1500))
+sm._A = []  # This empty array is a workaround to a known Matplotlib issue
+fig.colorbar(sm, ax=ax5, orientation='horizontal', label='Price per Night ($)')
+
+# Delete the empty subplot
+fig.delaxes(axs[2,1])
+```
+
+When classifying these listings into five clusters: 55, 55-90, 90-135, 135-211 and 211-1500$, there are some common features among the five plots. Most of the listings are located in inner London, and the distribution of listing within outer London are relatively sparse. Besides, the farther away from inner London, the lower the price is.
+
+```{python}
+np.unique(gdf.room_type)
+```
+
+```{python}
+fig, ax = plt.subplots(figsize=(10, 8))
+gdf.plot(marker='*', markersize=0.5, column='room_type', categorical=True, legend=True, ax=ax, legend_kwds={'loc': 'upper left'},)
+LB.plot(edgecolor='black', facecolor=(1,1,1,0), linewidth=1, ax=ax)
+plt.title(f'Map of the room type of listings in London')
+```
+
+Enter home and apartment holds the largest market share in London Airbnb, followed by private rooms, both of which are widely distributed in London. However, shared rooms and hotel rooms are much less common in London Airbnb.
+
+For London Airbnb, the distribution of host attributes shows a characteristic of having more centres and fewer periphery. In addition, the distribution difference between all types of rooms lies in the total number rather than the pattern, with a relatively uniform distribution.
+
+## 7. Drawing on your previous answers, and supporting your response with evidence (e.g. figures, maps, and statistical analysis/models), how *could* this data set be used to inform the regulation of Short-Term Lets (STL) in London? 
+
+::: 
+
+```{python}
+url_imd = "https://github.com/keyi0787/GW-data/raw/main/ID%202019%20for%20London.xlsx"
+imd_df = pd.read_excel(url_imd, sheet_name=4)
+print(imd_df.head())
+imd_df.head()
+```
+
+```{python}
+# make sure there is no NA in the column we use to merge
+print(df.neighbourhood_cleansed.isnull().sum())
+print(imd_df['Local Authority District name (2019)'].isnull().sum())
+```
+
+```{python}
+merged_df = pd.merge(df, imd_df, left_on='neighbourhood_cleansed', right_on='Local Authority District name (2019)', how='inner')
+```
+
+```{python}
+# Check the structure of the merged dataset
+print(merged_df.info())
+
+# Check for missing values
+print(merged_df.isnull().sum())
+```
+
+```{python}
+# Decide the columns to keep
+columns_to_keep = ['id', 'latitude', 'longitude', 'IMD - Average score ','price','property_type',]
+
+merged_df = merged_df[columns_to_keep]
+# Check the data type for all remained columns
+merged_df.info()
+```
+
+```{python}
+# Convert identifiers to strings
+merged_df['id'] = merged_df['id'].astype(str)
+print(merged_df.info())
+```
+
+```{python}
+# Converting 'price' to numeric
+merged_df['price'] = merged_df['price'].replace('[\$,]', '', regex=True).astype(float)
+```
+
+### Descriptive Analysis
+
+```{python}
+# Basic statistics for 'price'
+price_stats = {
+    'Mean': merged_df['price'].mean(),
+    'Median': merged_df['price'].median(),
+    'Mode': merged_df['price'].mode()[0],
+    'Range': merged_df['price'].max() - merged_df['price'].min(),
+    'Standard Deviation': merged_df['price'].std()
+}
+
+# Statistics for 'IMD - Average score'
+imd_score_stats = {
+    'Mean': merged_df['IMD - Average score '].mean(),
+    'Median': merged_df['IMD - Average score '].median(),
+    'Mode': merged_df['IMD - Average score '].mode()[0],
+    'Range': merged_df['IMD - Average score '].max() - merged_df['IMD - Average score '].min(),
+    'Standard Deviation': merged_df['IMD - Average score '].std()
+}
+
+# Create a DataFrame for better visualization
+stats_df = pd.DataFrame({'Price Statistics': price_stats, 'IMD Score Statistics': imd_score_stats})
+
+# Output the statistics in a table format
+stats_df
+```
+
+Here's a brief interpretation of the statistics you've obtained:
+
+**Price Statistics**
+<br>  Mean: On average, the price of Airbnb listings in your dataset is approximately £148.76.
+<br> Median: The median price is £100, indicating that half of the listings are priced below £100 and the other half above.
+<br> Mode: The most common price listed is £100.
+<br> Range: There's a wide range in prices, with the highest price being £80,100 more than the lowest price.
+<br> Standard Deviation: The high standard deviation of £476.38 suggests a significant spread in the listing prices,indicating variability in the pricing of Airbnb listings.
+<br> **IMD Score Statistics**
+<br> Mean: The average IMD score is approximately 23.48.
+<br> Median: The median IMD score is 24.46.
+<br> Mode: The most frequently occurring IMD score in your dataset is 20.339.
+<br> Range: The range of IMD scores is 23.343, indicating variability in the levels of deprivation across different areas.
+<br> Standard Deviation: A standard deviation of 5.22 indicates that there is some variability in IMD scores, but not as pronounced as in the price variable.
+<br> These statistics provide a foundational understanding of the key characteristics of your dataset, especially in terms of pricing and IMD scores.
+
+#### Bar chart for listing types
+
+```{python}
+listing_types = merged_df['property_type'].value_counts()
+
+plt.figure(figsize=(20, 10)) 
+sns.barplot(x=listing_types.index, y=listing_types.values)
+plt.title('Distribution of Property Types')
+plt.xlabel('Property Type')
+plt.ylabel('Number of Listings')
+plt.xticks(rotation=90, fontsize=10)  
+plt.tight_layout()  
+plt.show()
+```
+
+The variation in the number of housing types in the London STL market is also evident, with a wide range of property types potentially indicating a vibrant STL market that meets the needs of a diverse range of travellers. Regulation should protect this diversity while ensuring that STL does not have a negative impact on the local housing market or neighbourhood character. A large number of whole houses could mean a reduction in the long-term housing stock, which could exacerbate the housing shortage and push up rental prices. Regulatory measures could include limiting the number of days per year that whole houses are listed as STLs to ensure that houses are not permanently converted to STLs.
+
+The descriptive analysis shows that the pricing of Airbnb listings varies considerably across London, with higher standard deviations suggesting that the cost of accommodation varies considerably, which is likely to reflect the variability in the economy, policy and market regulation of different London neighbourhoods. Therefore, regulation of London's STLs could take into account the short-term housing market gradient taxation system to maintain fairness in the competitive market and help maintain the sustainability of the platform economy.
+
+```{python}
+# Distribution of Airbnb listings across different IMD scores
+imd_distribution = merged_df['IMD - Average score '].value_counts()
+
+# Investigate distribution of prices
+price_distribution = merged_df['price'].value_counts()
+```
+
+```{python}
+# Histogram for price distribution
+plt.figure(figsize=(10, 6))
+sns.histplot(merged_df['price'], bins=30, kde=True)
+plt.title('Distribution of Prices')
+plt.xlabel('Price')
+plt.ylabel('Frequency')
+plt.show()
+
+# Box plot for IMD scores
+plt.figure(figsize=(10, 6))
+sns.boxplot(x=merged_df['IMD - Average score '])
+plt.title('Box Plot of IMD Average Scores')
+plt.xlabel('IMD Average Score')
+plt.show()
+```
+
+### Spatial Analysis
+
+```{python}
+import geopandas as gpd
+from shapely.geometry import Point
+
+# Convert DataFrame to GeoDataFrame
+gdf1 = gpd.GeoDataFrame(
+    merged_df, 
+    geometry=gpd.points_from_xy(merged_df.longitude, merged_df.latitude),
+    crs="EPSG:4326"  # This is the standard latitude/longitude CRS
+)
+```
+
+```{python}
+# Checking CRS of both GeoDataFrames
+print(LB.crs)
+print(gdf1.crs)
+
+# If they don't match, reproject one of them
+# Assuming gdf needs to be reprojected to match LB
+gdf1 = gdf1.to_crs(LB.crs)
+```
+
+```{python}
+# Plotting
+fig, ax = plt.subplots(figsize=(15, 15))
+gdf1.plot(ax=ax, marker='*', markersize=1, column='IMD - Average score ', cmap='OrRd', legend=True, alpha=0.5)  # Plot IMD data
+#gdf.plot(ax=ax, marker='*', color=	"#EDB120", markersize=1, alpha=0.3)  # Overlay Airbnb listings
+LB.plot(edgecolor='lightgrey', facecolor=[1,1,1,0], linewidth=0.75, ax=ax)  # Plot London Boroughs
+plt.title('Airbnb Listings, IMD Scores, and Boroughs in London')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
+plt.show()
+
+# fig.savefig('plot1.png')
+```
+
+Analysis of the geospatial data revealed differences in the distribution and degree of dispersion of Airbnb listings and IMD scores across London boroughs. In areas with high IMD but low STL density, STLs are encouraged as a form of economic development, with the possibility of subsidies or tax breaks for residents who list their properties.
+
+### Statistic Analysis
+
+```{python}
+import statsmodels.api as sm
+import spreg
+import libpysal as lps
+from esda.moran import Moran_Local
+from splot.esda import plot_local_autocorrelation
+import warnings
+from esda.moran import Moran
+import libpysal as lps
+from splot.esda import plot_moran
+```
+
+#### Global Moran's I
+
+```{python}
+wq = lps.weights.Queen.from_dataframe(LB) # Using Quen-style adjacency matrices
+wq.transform = 'r'# Standardised matrix
+```
+
+```{python}
+centroids = LB.geometry.centroid  # Calculate polygon geometric centres
+
+ax = LB.plot(figsize=(10, 10),cmap="Blues")
+plt.plot(centroids.x, centroids.y, '.')
+for k, neighs in wq.neighbors.items():
+    origin = centroids[k]
+    for neigh in neighs:
+        segment = centroids[[k,neigh]]
+        plt.plot(segment.x, segment.y, '-')
+plt.title('Queen Neighbor Graph')
+plt.axis('off')
+plt.show()
+```
+
+```{python}
+# Spatial join
+merged_data = gpd.sjoin(gdf1, LB, how="inner", op="intersects")
+
+# Checking the result
+print(merged_data.head())
+merged_data.head()
+```
+
+```{python}
+warnings.filterwarnings('ignore')
+
+# First, create a weights matrix based on geographic contiguity or distance
+wq = lps.weights.Queen.from_dataframe(merged_data)  # or .KNN, .DistanceBand, etc.
+wq.transform = 'r'
+# Calculate Moran's I for IMD scores
+moran = Moran(merged_data['IMD - Average score '], wq)
+print(f"Global Moran's I: {moran.I}, p-value: {moran.p_sim}")
+```
+
+```{python}
+# Visualising  Moran's I Scatterplots
+fig, ax = plot_moran(moran, figsize=(12, 6), zstandard=True)
+# If ax is an array, we need to set the x-axis range of each subplot
+if isinstance(ax, np.ndarray):
+    for axis in ax:
+        axis.set_xlim(-0.01, 0.01)
+else:
+    ax.set_xlim(-0.01, 0.01)  # If ax is a single axis object, it is straightforward to set the
+
+plt.show()
+```
+
+#### Local Moran's I
+
+```{python}
+local_moran = Moran_Local(merged_data['IMD - Average score '], wq)
+
+# Visualisation of local Moran's I
+plot_local_autocorrelation(local_moran, merged_data, 'IMD - Average score ')
+plt.show()
+```
+
+Targeted interventions: By using spatial data, regulations can be more accurately tailored to the needs of specific areas, avoiding a "one-size-fits-all" approach. The Global Moran, Index and Local Moran Indices reveal how the IMD - Average score clusters spatially. A H-H clustering in the North East of London close to the centre could indicate where a regulatory cap on STLs is necessary to protect residents' housing stock, while a L-L clustering in a narrow area stretching from the centre of London in four directions - due east, due west, due south and due north - could identify areas where STLs could be promoted to boost the local economy.
+
+#### Regression analysis
+
+```{python}
+# Calculate the number of listings per borough
+borough_counts = merged_data['NAME'].value_counts()
+
+# Calculate the IMD average score for each borough
+borough_imd = merged_data.groupby('NAME')['IMD - Average score '].mean()
+
+# Get the area of the borough
+borough_areas = merged_data[['NAME', 'HECTARES']].drop_duplicates().set_index('NAME')
+borough_areas['HECTARES'] = borough_areas['HECTARES'].astype(float)
+
+# Calculation of housing density
+density = borough_counts / borough_areas['HECTARES']
+
+# Convert Listing Density, IMD Score to DataFrame and Reset Indexes
+density_df = pd.DataFrame(density, columns=['density']).reset_index()
+imd_df = pd.DataFrame(borough_imd).reset_index()
+
+# Combined Listing Density and IMD Score
+analysis_data = pd.merge(density_df, imd_df, on='NAME')
+
+# Remove possible NaN values
+analysis_data.dropna(inplace=True)
+
+# OLS regression analysis
+X = sm.add_constant(analysis_data['density']) 
+y = analysis_data['IMD - Average score ']
+model = sm.OLS(y, X).fit()
+
+# Print regression analysis results
+print(model.summary())
+```
+
+```{python}
+# Plotting scatter plots and regression lines
+# Setting the graphic style
+sns.set_style("whitegrid")
+
+# Scatterplotting
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='density', y='IMD - Average score ', data=analysis_data)
+
+# Calculation of regression lines
+x_vals = analysis_data['density']
+y_vals = model.params[0] + model.params[1] * x_vals
+
+# Plotting the regression line
+plt.plot(x_vals, y_vals, color='red')
+
+# Add title and tags
+plt.title('Regression Analysis of Housing Density vs IMD Average Score')
+plt.xlabel('Housing Density (Number of Listings per Hectare)')
+plt.ylabel('IMD Average Score')
+
+# Plotting
+plt.show()
+```
+
+As can be seen from the figure, the average IMD score appears to increase as housing density increases, although the relationship does not appear to be very strong given the spread of scores. The relationship between housing density and IMD scores may also be non-linear and a simple OLS model may not capture this effectively. The low R-squared values suggest that the model does not explain much of the variation in IMD scores. This may be because the model does not include other factors that have a greater impact on IMD scores than housing density. p-values slightly above 0.05 may be due to the lack of a strong relationship, or the sample size may not be large enough to detect a stronger relationship.
+
+The regulation of Airbnb has been the subject of much debate and policy development in London, particularly in light of the city's housing crisis and the need to maintain a balance between tourism and local housing needs. London has introduced the '90-day rule', which limits the number of days a property can be let on a short-term basis without planning permission to 90 nights per year. This is to prevent long-term housing being replaced by short-term holiday lettings and to maintain the integrity of communities.The 90 day rule was introduced in response to the changing landscape of the sharing economy and the growing popularity of platforms such as Airbnb. Prior to the Deregulation Act 2015, landlords in London were required to obtain planning permission for any short-term letting. The Act now allows landlords to offer short-term lettings of up to 90 nights per year without planning permission, seeking to protect the local housing market while encouraging the growth of the home-sharing economy. The UK government is considering a registration scheme similar to those in other parts of the UK, such as Edinburgh's compulsory licensing scheme for short-term lettings and Scotland's forthcoming requirement that all short-term lettings be licensed by July 2024.
+
+In other major cities, Airbnb regulations show a different approach. Cities such as Paris, Berlin and New York have introduced regulations ranging from caps on the number of rental days to outright bans in certain areas. London can learn from the experiences of other cities and adopt best practices to avoid potential pitfalls when regulating STLs. Paris, for example, imposes strict regulations on Airbnb, limiting rentals to primary residences. Owners are allowed to rent out their property as a furnished tourist accommodation for a maximum of 120 days per year, which must be declared to the city hall. The rules for second homes are even stricter. Enforcement of these regulations has been strengthened by the imposition of significant fines for violations, which have decreased over time in the city. New York City's approach has recently changed from the most lenient to the most stringent. The new rules require landlords to register their rentals with the city. Rentals for less than 30 days are only allowed if the landlord is present during the guest's stay, and accommodations can only be offered to two or fewer guests.While these measures aim to curb the number of properties dedicated to short-term rentals, they also impact individuals who rely on Airbnb's revenue to afford city living. This change is part of a wider effort to address house prices and long-term rentals for residents.
+
+London could learn from these examples and consider the balance between the need for short-term accommodation (particularly for tourists) and the well-being of local residents who may be affected by the proliferation of short-term rentals. Any regulation should take into account the city's unique housing market, regulatory framework and the impact on local communities and the economy. Our aim is to develop a tailored approach that mitigates negative impacts while recognising the benefits that short-term rentals can bring to homeowners and visitors.
+
+
+https://www.stayinlondon.co.uk/learn/what-is-the-90-day-rule-in-london
+https://www.airbnb.co.uk/help/article/868
+
+## Sustainable Authorship Tools
+
+Your QMD file should automatically download your BibTeX file. We will then re-run the QMD file to generate the output successfully.
+
+Written in Markdown and generated from [Quarto](https://quarto.org/). Fonts used: [Spectral](https://fonts.google.com/specimen/Spectral) (mainfont), [Roboto](https://fonts.google.com/specimen/Roboto) (<span style="font-family:Sans-Serif;">sansfont</span>) and [JetBrains Mono](https://fonts.google.com/specimen/JetBrains%20Mono) (`monofont`). 
+
+## References
+
